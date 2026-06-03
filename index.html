@@ -1,0 +1,384 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.app { padding: 1rem 0; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 8px; }
+.header h1 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 1.5rem; }
+.stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.genre-bar { margin-bottom: 1.5rem; }
+.genre-bar h3 { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; }
+.genre-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.genre-name { width: 130px; color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.genre-track { flex: 1; height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+.genre-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+.genre-pct { width: 36px; text-align: right; color: var(--color-text-secondary); }
+.question-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.q-meta { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.badge { font-size: 11px; padding: 3px 10px; border-radius: var(--border-radius-md); font-weight: 500; }
+.badge-genre { background: var(--color-background-info); color: var(--color-text-info); }
+.badge-year { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.badge-diff { background: var(--color-background-warning); color: var(--color-text-warning); }
+.q-text { font-size: 15px; line-height: 1.7; color: var(--color-text-primary); margin-bottom: 16px; }
+.q-image { width: 100%; max-width: 420px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); margin-bottom: 16px; display: block; background: var(--color-background-secondary); padding: 8px; }
+.q-image-placeholder { width: 100%; max-width: 420px; background: var(--color-background-secondary); border: 0.5px dashed var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 2rem; text-align: center; margin-bottom: 16px; color: var(--color-text-secondary); font-size: 13px; }
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice-btn { display: flex; align-items: flex-start; gap: 12px; padding: 10px 14px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-primary); cursor: pointer; text-align: left; font-size: 14px; color: var(--color-text-primary); transition: background 0.15s; }
+.choice-btn:hover:not(:disabled) { background: var(--color-background-secondary); }
+.choice-btn.correct { border-color: #1D9E75; background: #E1F5EE; color: #085041; }
+.choice-btn.wrong { border-color: #D85A30; background: #FAECE7; color: #4A1B0C; }
+.choice-btn.reveal { border-color: #1D9E75; background: #E1F5EE; color: #085041; }
+.choice-label { font-weight: 500; min-width: 20px; }
+.explanation { margin-top: 1rem; padding: 1rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); font-size: 14px; line-height: 1.7; }
+.explanation h4 { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 6px; }
+.explanation .correct-exp { color: #085041; margin-bottom: 10px; }
+.explanation .wrong-exp { color: var(--color-text-secondary); }
+.explanation .wrong-exp span { display: block; margin-bottom: 4px; }
+.btn-row { display: flex; gap: 8px; margin-top: 1rem; flex-wrap: wrap; }
+.btn-primary { padding: 8px 20px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 14px; cursor: pointer; }
+.btn-primary:hover { background: var(--color-background-secondary); }
+.btn-weak { padding: 8px 20px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-warning); color: var(--color-text-warning); font-size: 14px; cursor: pointer; }
+.mode-selector { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.mode-btn { padding: 6px 16px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); font-size: 13px; cursor: pointer; }
+.mode-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: transparent; }
+.progress-text { font-size: 13px; color: var(--color-text-secondary); }
+.result-screen { text-align: center; padding: 2rem 1rem; }
+.result-screen h2 { font-size: 22px; font-weight: 500; margin-bottom: 8px; }
+.result-screen p { color: var(--color-text-secondary); margin-bottom: 1.5rem; font-size: 14px; }
+.weak-list { margin-top: 1rem; text-align: left; }
+.weak-list h3 { font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--color-text-secondary); }
+.weak-tag { display: inline-block; margin: 3px; padding: 4px 12px; background: var(--color-background-warning); color: var(--color-text-warning); border-radius: var(--border-radius-md); font-size: 13px; }
+</style>
+
+<div class="app">
+  <h2 class="sr-only">2級ディーゼル整備士 試験対策アプリ</h2>
+  <div class="header">
+    <h1>2級ディーゼル 試験対策</h1>
+    <span class="progress-text" id="progressText"></span>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">回答済み</div><div class="stat-value" id="statAnswered">0</div></div>
+    <div class="stat-card"><div class="stat-label">正解数</div><div class="stat-value" id="statCorrect">0</div></div>
+    <div class="stat-card"><div class="stat-label">正答率</div><div class="stat-value" id="statRate">-%</div></div>
+    <div class="stat-card"><div class="stat-label">残り問題</div><div class="stat-value" id="statRemain">-</div></div>
+  </div>
+
+  <div class="genre-bar">
+    <h3>ジャンル別正答率</h3>
+    <div id="genreStats"></div>
+  </div>
+
+  <div class="mode-selector">
+    <button class="mode-btn active" onclick="setMode('all')">全問題</button>
+    <button class="mode-btn" onclick="setMode('weak')">苦手強化</button>
+    <button class="mode-btn" onclick="setMode('unanswered')">未回答のみ</button>
+  </div>
+
+  <div id="quizArea"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    id: "2024-01", year: 2024, genre: "エンジン構造", difficulty: 2,
+    question: "コモンレール式燃料噴射装置において、サプライポンプの主な役割として正しいものはどれか。",
+    image: null,
+    choices: [
+      { label: "A", text: "燃料をインジェクターへ直接噴射する" },
+      { label: "B", text: "高圧燃料をコモンレールへ圧送する" },
+      { label: "C", text: "噴射タイミングをECUへ送信する" },
+      { label: "D", text: "燃料の気化を促進させる" }
+    ],
+    answer: "B",
+    explanation: {
+      correct: "サプライポンプは低圧燃料を高圧（最大200MPa程度）に加圧し、コモンレール（蓄圧管）へ圧送する役割を担います。",
+      wrong: {
+        A: "燃料の直接噴射はインジェクターの役割です。",
+        C: "噴射タイミングの制御はECU自身が行い、サプライポンプは信号送信を行いません。",
+        D: "ディーゼルエンジンは圧縮着火方式のため、気化促進は不要です。"
+      }
+    }
+  },
+  {
+    id: "2023-15", year: 2023, genre: "電子制御", difficulty: 2,
+    question: "下図はコモンレール式燃料システムの系統図である。①の部品名称として正しいものはどれか。",
+    image: "img/2023-15.png",
+    choices: [
+      { label: "A", text: "インジェクター" },
+      { label: "B", text: "プレッシャーリミッター" },
+      { label: "C", text: "コモンレール（蓄圧管）" },
+      { label: "D", text: "サプライポンプ" }
+    ],
+    answer: "C",
+    explanation: {
+      correct: "コモンレール（蓄圧管）は高圧燃料を蓄え、各インジェクターへ均一な圧力で燃料を供給します。系統図では高圧ポンプとインジェクターの間に位置します。",
+      wrong: {
+        A: "インジェクターは燃料を噴射する部品で、コモンレールの下流に配置されます。",
+        B: "プレッシャーリミッターはコモンレール内の圧力が異常上昇した際に燃料を逃がす安全装置です。",
+        D: "サプライポンプは燃料を加圧する部品で、コモンレールの上流に配置されます。"
+      }
+    }
+  },
+  {
+    id: "2022-08", year: 2022, genre: "環境・排気", difficulty: 3,
+    question: "尿素SCRシステムにおいて、尿素水溶液（AdBlue）を使用する主な目的として正しいものはどれか。",
+    image: null,
+    choices: [
+      { label: "A", text: "PM（粒子状物質）を燃焼・除去するため" },
+      { label: "B", text: "NOx（窒素酸化物）を無害化するため" },
+      { label: "C", text: "燃料消費率を向上させるため" },
+      { label: "D", text: "エンジンオイルの劣化を防ぐため" }
+    ],
+    answer: "B",
+    explanation: {
+      correct: "尿素SCRシステムでは、AdBlueを排気管内に噴射してアンモニアを生成し、SCR触媒でNOx（窒素酸化物）を窒素と水に還元・無害化します。",
+      wrong: {
+        A: "PMの除去はDPF（ディーゼル微粒子捕集フィルター）の役割です。",
+        C: "AdBlueは排気浄化のためのものであり、燃費向上には直接寄与しません。",
+        D: "エンジンオイルの保護とAdBlueは関係がありません。"
+      }
+    }
+  },
+  {
+    id: "2021-03", year: 2021, genre: "法規・保安基準", difficulty: 1,
+    question: "道路運送車両法において、分解整備に該当する作業として正しいものはどれか。",
+    image: null,
+    choices: [
+      { label: "A", text: "エンジンオイルの交換" },
+      { label: "B", text: "タイヤの交換" },
+      { label: "C", text: "原動機を取り外して行う整備" },
+      { label: "D", text: "ワイパーブレードの交換" }
+    ],
+    answer: "C",
+    explanation: {
+      correct: "分解整備とは、原動機・動力伝達装置・走行装置・操縦装置・制動装置・緩衝装置を取り外して行う整備（またはこれらを分解して行う整備）を指します。",
+      wrong: {
+        A: "エンジンオイル交換はエンジンを取り外さないため、分解整備には該当しません。",
+        B: "タイヤ交換は走行装置の取り外しに見えますが、タイヤ単体の交換は分解整備に含まれません。",
+        D: "ワイパーブレード交換は消耗品交換であり、分解整備には該当しません。"
+      }
+    }
+  },
+  {
+    id: "2020-11", year: 2020, genre: "点検・整備", difficulty: 2,
+    question: "ディーゼルエンジンのDPF（ディーゼル微粒子捕集フィルター）の強制再生が必要な状態の判断基準として最も適切なものはどれか。",
+    image: null,
+    choices: [
+      { label: "A", text: "エンジン警告灯が点灯したとき" },
+      { label: "B", text: "DPF堆積量（灰分・PM）が規定値を超えたとき" },
+      { label: "C", text: "走行距離が10,000kmを超えたとき" },
+      { label: "D", text: "燃料残量が半分以下になったとき" }
+    ],
+    answer: "B",
+    explanation: {
+      correct: "DPFの強制再生は、PM（粒子状物質）や灰分の堆積量が規定値を超えた場合に必要となります。車両のシステムが差圧センサー等でDPFの詰まりを検知し、再生を促します。",
+      wrong: {
+        A: "エンジン警告灯はさまざまな異常で点灯するため、これだけではDPF強制再生の判断基準にはなりません。",
+        C: "走行距離はあくまで目安であり、実際の堆積状態を直接反映しません。",
+        D: "燃料残量はDPF堆積量と関係がありません。"
+      }
+    }
+  }
+];
+
+const GENRES = ["エンジン構造","電子制御","シャシー","法規・保安基準","点検・整備","環境・排気"];
+const GENRE_COLORS = {
+  "エンジン構造": "#378ADD",
+  "電子制御": "#7F77DD",
+  "シャシー": "#1D9E75",
+  "法規・保安基準": "#BA7517",
+  "点検・整備": "#639922",
+  "環境・排気": "#D4537E"
+};
+
+let mode = 'all';
+let history = {};
+let currentQ = null;
+let answered = false;
+let queue = [];
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  buildQueue();
+  nextQuestion();
+}
+
+function buildQueue() {
+  let pool = [...QUESTIONS];
+  if (mode === 'weak') {
+    const weakGenres = getWeakGenres();
+    pool = pool.sort((a, b) => {
+      const aWeak = weakGenres.includes(a.genre) ? 0 : 1;
+      const bWeak = weakGenres.includes(b.genre) ? 0 : 1;
+      return aWeak - bWeak;
+    });
+  } else if (mode === 'unanswered') {
+    pool = pool.filter(q => !history[q.id]);
+  }
+  queue = shuffle(pool);
+}
+
+function getWeakGenres() {
+  const genreStats = {};
+  GENRES.forEach(g => { genreStats[g] = { correct: 0, total: 0 }; });
+  Object.entries(history).forEach(([id, h]) => {
+    const q = QUESTIONS.find(q => q.id === id);
+    if (q) {
+      genreStats[q.genre].total++;
+      if (h.correct) genreStats[q.genre].correct++;
+    }
+  });
+  return GENRES.filter(g => {
+    const s = genreStats[g];
+    if (s.total === 0) return true;
+    return (s.correct / s.total) < 0.6;
+  });
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function updateStats() {
+  const total = Object.keys(history).length;
+  const correct = Object.values(history).filter(h => h.correct).length;
+  document.getElementById('statAnswered').textContent = total;
+  document.getElementById('statCorrect').textContent = correct;
+  document.getElementById('statRate').textContent = total > 0 ? Math.round(correct / total * 100) + '%' : '-%';
+  document.getElementById('statRemain').textContent = QUESTIONS.filter(q => !history[q.id]).length;
+  renderGenreStats();
+}
+
+function renderGenreStats() {
+  const genreStats = {};
+  GENRES.forEach(g => { genreStats[g] = { correct: 0, total: 0 }; });
+  Object.entries(history).forEach(([id, h]) => {
+    const q = QUESTIONS.find(q => q.id === id);
+    if (q) {
+      genreStats[q.genre].total++;
+      if (h.correct) genreStats[q.genre].correct++;
+    }
+  });
+  const container = document.getElementById('genreStats');
+  container.innerHTML = GENRES.map(g => {
+    const s = genreStats[g];
+    const pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : null;
+    const color = GENRE_COLORS[g] || '#888';
+    return `<div class="genre-item">
+      <span class="genre-name">${g}</span>
+      <div class="genre-track">
+        <div class="genre-fill" style="width:${pct !== null ? pct : 0}%;background:${color}"></div>
+      </div>
+      <span class="genre-pct">${pct !== null ? pct + '%' : '-'}</span>
+    </div>`;
+  }).join('');
+}
+
+function nextQuestion() {
+  answered = false;
+  if (queue.length === 0) buildQueue();
+  currentQ = queue.shift();
+  if (!currentQ) { showResult(); return; }
+  renderQuestion(currentQ);
+  const total = QUESTIONS.length;
+  const done = Object.keys(history).length;
+  document.getElementById('progressText').textContent = `${done} / ${total} 問回答済み`;
+}
+
+function renderQuestion(q) {
+  const imgHtml = q.image
+    ? `<div class="q-image-placeholder"><i class="ti ti-photo" style="font-size:24px;margin-bottom:8px;display:block" aria-hidden="true"></i>図：${q.image}<br><span style="font-size:11px">※ img/フォルダの画像ファイルに差し替えてください</span></div>`
+    : '';
+  const diffStars = '★'.repeat(q.difficulty) + '☆'.repeat(3 - q.difficulty);
+  document.getElementById('quizArea').innerHTML = `
+    <div class="question-card">
+      <div class="q-meta">
+        <span class="badge badge-genre">${q.genre}</span>
+        <span class="badge badge-year">${q.year}年</span>
+        <span class="badge badge-diff">${diffStars}</span>
+      </div>
+      <p class="q-text">${q.question}</p>
+      ${imgHtml}
+      <div class="choices" id="choices">
+        ${q.choices.map(c => `
+          <button class="choice-btn" onclick="selectAnswer('${c.label}')" id="choice-${c.label}">
+            <span class="choice-label">${c.label}</span>
+            <span>${c.text}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div id="explanation" style="display:none"></div>
+      <div class="btn-row" id="btnRow" style="display:none">
+        <button class="btn-primary" onclick="nextQuestion()">次の問題 →</button>
+        <button class="btn-weak" onclick="setMode('weak')">苦手を強化する</button>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(label) {
+  if (answered) return;
+  answered = true;
+  const q = currentQ;
+  const isCorrect = label === q.answer;
+  history[q.id] = { correct: isCorrect, selectedLabel: label };
+
+  q.choices.forEach(c => {
+    const btn = document.getElementById('choice-' + c.label);
+    btn.disabled = true;
+    if (c.label === q.answer) btn.classList.add('reveal');
+    else if (c.label === label && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const wrongKeys = Object.keys(q.explanation.wrong).filter(k => k !== q.answer);
+  const wrongHtml = wrongKeys.map(k => `<span>✗ ${k}：${q.explanation.wrong[k]}</span>`).join('');
+  const expDiv = document.getElementById('explanation');
+  expDiv.style.display = 'block';
+  expDiv.innerHTML = `
+    <div class="explanation">
+      <h4>${isCorrect ? '✓ 正解！' : '✗ 不正解　正解は ' + q.answer}</h4>
+      <p class="correct-exp">【正解の理由】${q.explanation.correct}</p>
+      <div class="wrong-exp">${wrongHtml}</div>
+    </div>`;
+  document.getElementById('btnRow').style.display = 'flex';
+  updateStats();
+}
+
+function showResult() {
+  const total = Object.keys(history).length;
+  const correct = Object.values(history).filter(h => h.correct).length;
+  const pct = Math.round(correct / total * 100);
+  const weakGenres = getWeakGenres();
+  document.getElementById('quizArea').innerHTML = `
+    <div class="result-screen question-card">
+      <h2>${pct}%</h2>
+      <p>${total}問中 ${correct}問正解</p>
+      ${weakGenres.length > 0 ? `<div class="weak-list"><h3>苦手ジャンル</h3>${weakGenres.map(g => `<span class="weak-tag">${g}</span>`).join('')}</div>` : ''}
+      <div class="btn-row" style="justify-content:center;margin-top:1.5rem">
+        <button class="btn-primary" onclick="restart()">もう一度</button>
+        <button class="btn-weak" onclick="setMode('weak')">苦手を重点出題 ↗</button>
+      </div>
+    </div>`;
+}
+
+function restart() {
+  history = {};
+  buildQueue();
+  nextQuestion();
+  updateStats();
+}
+
+buildQueue();
+nextQuestion();
+updateStats();
+</script>

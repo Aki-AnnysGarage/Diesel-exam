@@ -470,21 +470,15 @@ const JSON_FILES = [
   // 年度が増えたらここに追加
 ];
 
-// ジャンル名はJSONデータから自動抽出する（年度ごとの表記ゆれ・追加に自動対応）
-let GENRES = [];
-let GENRE_COLORS = {};
-const GENRE_PALETTE = ['#4f8ef7','#7c6af7','#22d3a0','#f7c948','#f7546a','#2dd4bf','#fb923c','#a78bfa','#34d399','#f472b6','#60a5fa','#facc15'];
-
-function computeGenres() {
-  // 出現順にユニークなジャンル名を収集
-  const seen = [];
-  allQuestions.forEach(q => {
-    if (q.genre && !seen.includes(q.genre)) seen.push(q.genre);
-  });
-  GENRES = seen;
-  GENRE_COLORS = {};
-  GENRES.forEach((g, i) => { GENRE_COLORS[g] = GENRE_PALETTE[i % GENRE_PALETTE.length]; });
-}
+const GENRES = ['エンジン構造','電子制御','シャシー','法規・保安基準','点検・整備','環境・排気'];
+const GENRE_COLORS = {
+  'エンジン構造': '#4f8ef7',
+  '電子制御':     '#7c6af7',
+  'シャシー':     '#22d3a0',
+  '法規・保安基準':'#f7c948',
+  '点検・整備':   '#f7546a',
+  '環境・排気':   '#2dd4bf',
+};
 
 // =====================
 // 状態
@@ -884,7 +878,6 @@ function restartAll() {
 async function init() {
   loadHistory();
   allQuestions = await loadAllJSON();
-  computeGenres();
   if (allQuestions.length === 0) {
     document.getElementById('quizArea').innerHTML = `
       <div class="loading" style="color:var(--red)">
